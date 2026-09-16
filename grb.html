@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRB — Gestor de Reservas y Boletos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF3FC;
+    --panel:#FFFFFF;
+    --ink:#0B1130;
+    --muted: rgba(11,17,48,0.62);
+    --line: rgba(11,17,48,0.12);
+    --accent:#2A5FE0;
+    --accent-soft:#DCE6FB;
+    --ok:#4F7FEE;
+    --warn:#14275E;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'Inter', sans-serif; font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-weight:700; line-height:1.12; margin:0; letter-spacing:-0.01em;}
+  a{color:inherit;} img{max-width:100%; display:block;}
+  code, .mono{font-family:'JetBrains Mono', monospace;}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(244,245,247,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1080px; margin:0 auto;}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:1.05rem;}
+  .brand-mark{width:28px; height:28px; border-radius:7px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.7rem; font-family:'JetBrains Mono', monospace; font-weight:600;}
+  .brand-sub{font-size:0.78rem; color:var(--muted); font-weight:400;}
+  .btn-cta{background:var(--ink); color:#fff; padding:10px 18px; border-radius:8px; text-decoration:none; font-size:0.88rem; font-weight:600; transition:background .2s;}
+  .btn-cta:hover{background:var(--accent);}
+
+  /* HERO */
+  .hero{padding:80px 0 64px;}
+  .hero-grid{display:grid; grid-template-columns:1fr 1fr; gap:52px; align-items:center;}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--accent); font-weight:600; margin-bottom:20px; font-family:'JetBrains Mono', monospace;}
+  .eyebrow::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--ok);}
+  .hero h1{font-size:clamp(2.1rem, 4vw, 2.9rem); max-width:14ch;}
+  .hero-sub{margin-top:20px; max-width:46ch; font-size:1.05rem; color:var(--muted);}
+  .hero-cta{display:flex; gap:14px; margin-top:32px; flex-wrap:wrap;}
+  .btn-primary{background:var(--accent); color:#fff; padding:13px 24px; border-radius:8px; text-decoration:none; font-weight:600; font-size:0.95rem;}
+  .btn-secondary{padding:13px 24px; border-radius:8px; text-decoration:none; font-weight:600; font-size:0.95rem; border:1.5px solid var(--line); color:var(--ink);}
+
+  /* schedule panel mock */
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:0 20px 40px rgba(16,20,37,0.06);}
+  .panel-head{display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--line);}
+  .panel-head span{font-size:0.78rem; color:var(--muted); font-family:'JetBrains Mono', monospace;}
+  .dots{display:flex; gap:6px;}
+  .dots i{width:8px; height:8px; border-radius:50%; background:var(--line); display:block;}
+  .route-row{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--line); font-size:0.85rem;}
+  .route-row:last-child{border-bottom:none;}
+  .route-name{font-weight:600;}
+  .route-time{font-family:'JetBrains Mono', monospace; color:var(--muted); font-size:0.8rem;}
+  .route-status{font-size:0.72rem; padding:3px 9px; border-radius:100px; font-family:'JetBrains Mono', monospace;}
+  .status-open{background:var(--accent-soft); color:var(--accent);}
+  .status-few{background:var(--warn); color:#fff;}
+
+  section{padding:80px 0;}
+  .section-head{max-width:540px; margin-bottom:48px;}
+  .kicker{color:var(--accent); font-weight:600; font-size:0.82rem; font-family:'JetBrains Mono', monospace; margin-bottom:14px;}
+  .section-head h2{font-size:clamp(1.6rem, 3vw, 2.05rem);}
+  .section-head p{margin-top:14px; color:var(--muted); font-size:1.02rem;}
+
+  /* FEATURES */
+  .features{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .feature{background:var(--panel); padding:30px;}
+  .feature .f-tag{font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:var(--accent); margin-bottom:10px;}
+  .feature h4{font-size:1.05rem; margin-bottom:8px;}
+  .feature p{margin:0; font-size:0.92rem; color:var(--muted);}
+
+  /* SEAT MAP demo */
+  .seatmap-wrap{display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center;}
+  .seatmap{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:24px;}
+  .seatmap-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:16px;}
+  .seat{aspect-ratio:1; border-radius:6px; background:var(--accent-soft); border:1px solid var(--accent);}
+  .seat.taken{background:var(--line); border-color:transparent;}
+  .seat.aisle{background:transparent; border:none;}
+  .seatmap-legend{display:flex; gap:18px; margin-top:16px; font-size:0.78rem; color:var(--muted);}
+  .legend-dot{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:middle;}
+
+  /* PROCESS numbered - real sequence */
+  .flow{counter-reset:step;}
+  .flow-step{display:flex; gap:20px; padding:22px 0; border-top:1px solid var(--line);}
+  .flow-step:last-child{border-bottom:1px solid var(--line);}
+  .flow-num{counter-increment:step; font-family:'JetBrains Mono', monospace; font-weight:600; color:var(--accent); font-size:0.95rem; flex-shrink:0; width:28px;}
+  .flow-num::before{content:"0" counter(step);}
+  .flow-body h4{font-size:1rem; margin-bottom:6px;}
+  .flow-body p{margin:0; font-size:0.9rem; color:var(--muted); max-width:52ch;}
+
+  /* CTA */
+  .cta-band{background:var(--ink); color:#fff; border-radius:16px; padding:56px; display:flex; justify-content:space-between; align-items:center; gap:32px; flex-wrap:wrap;}
+  .cta-band h2{color:#fff; font-size:clamp(1.5rem,2.8vw,1.9rem); max-width:20ch;}
+  .cta-band p{color:rgba(255,255,255,0.68); margin-top:10px; max-width:42ch; font-size:0.95rem;}
+  .btn-white{background:#fff; color:var(--ink); padding:14px 26px; border-radius:8px; text-decoration:none; font-weight:700; white-space:nowrap;}
+
+  footer{padding:36px 0 56px; text-align:center; font-size:0.85rem; color:var(--muted);}
+  footer a{color:var(--accent); text-decoration:none; font-weight:600;}
+
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr;}
+    .features{grid-template-columns:1fr;}
+    .seatmap-wrap{grid-template-columns:1fr;}
+    .cta-band{flex-direction:column; align-items:flex-start; padding:36px 26px;}
+  }
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="brand"><span class="brand-mark">GRB</span>Gestor de Reservas y Boletos <span class="brand-sub">— by K'an Balam</span></div>
+    <a class="btn-cta" href="https://wa.me/52" target="_blank" rel="noopener">Solicitar demo</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">en desarrollo</p>
+        <h1>Boletos, asientos y corridas, en un solo sistema.</h1>
+        <p class="hero-sub">GRB es el software para líneas de transporte de pasajeros con rutas y horarios fijos: vende boletos, controla asientos y ocupación por corrida, sin depender de la ventanilla.</p>
+        <div class="hero-cta">
+          <a class="btn-primary" href="#funciones">Ver funciones</a>
+          <a class="btn-secondary" href="#flujo">Cómo funciona</a>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <span>corridas · hoy</span>
+          <div class="dots"><i></i><i></i><i></i></div>
+        </div>
+        <div class="route-row">
+          <div><div class="route-name">Nueva Italia → Morelia</div><div class="route-time">06:00 hrs</div></div>
+          <span class="route-status status-open">18 lugares</span>
+        </div>
+        <div class="route-row">
+          <div><div class="route-name">Morelia → CDMX</div><div class="route-time">09:30 hrs</div></div>
+          <span class="route-status status-few">3 lugares</span>
+        </div>
+        <div class="route-row">
+          <div><div class="route-name">CDMX → Morelia</div><div class="route-time">16:00 hrs</div></div>
+          <span class="route-status status-open">22 lugares</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="funciones">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">// funciones</p>
+        <h2>Lo que necesita una línea de transporte para dejar el papel y el cuaderno</h2>
+        <p>Cada función resuelve un problema puntual de operar rutas fijas con volumen de pasajeros.</p>
+      </div>
+      <div class="features">
+        <div class="feature"><p class="f-tag">venta</p><h4>Boletos en línea</h4><p>Tus pasajeros compran su boleto desde el celular, sin llamar ni ir a la ventanilla.</p></div>
+        <div class="feature"><p class="f-tag">ocupación</p><h4>Mapa de asientos</h4><p>Cada corrida muestra qué lugares están libres, apartados o vendidos, en tiempo real.</p></div>
+        <div class="feature"><p class="f-tag">control</p><h4>Corridas y horarios</h4><p>Da de alta tus rutas y horarios fijos una sola vez; el sistema controla la ocupación de cada corrida.</p></div>
+        <div class="feature"><p class="f-tag">operación</p><h4>Panel para el operador</h4><p>Ve cuántos boletos van vendidos, cuánto se ha cobrado y qué corridas necesitan atención.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+    <div class="wrap seatmap-wrap">
+      <div>
+        <p class="kicker">// mapa de asientos</p>
+        <h2 style="font-size:1.7rem; margin-bottom:14px;">Cada lugar, contado</h2>
+        <p style="color:var(--muted); font-size:0.98rem; max-width:42ch;">El pasajero elige su lugar antes de pagar, y ese lugar queda apartado al instante — se acabó vender el mismo asiento dos veces.</p>
+      </div>
+      <div class="seatmap">
+        <span class="mono" style="font-size:0.78rem; color:var(--muted);">unidad 04 · corrida 06:00</span>
+        <div class="seatmap-grid">
+          <div class="seat"></div><div class="seat taken"></div><div class="seat aisle"></div><div class="seat"></div>
+          <div class="seat taken"></div><div class="seat"></div><div class="seat aisle"></div><div class="seat taken"></div>
+          <div class="seat"></div><div class="seat"></div><div class="seat aisle"></div><div class="seat taken"></div>
+          <div class="seat taken"></div><div class="seat taken"></div><div class="seat aisle"></div><div class="seat"></div>
+        </div>
+        <div class="seatmap-legend">
+          <span><i class="legend-dot" style="background:var(--accent-soft); border:1px solid var(--accent);"></i>Disponible</span>
+          <span><i class="legend-dot" style="background:var(--line);"></i>Ocupado</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flujo">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">// flujo de compra</p>
+        <h2>Del clic al boleto, cuatro pasos</h2>
+      </div>
+      <div class="flow">
+        <div class="flow-step"><span class="flow-num"></span><div class="flow-body"><h4>Elige ruta y horario</h4><p>El pasajero selecciona entre las corridas disponibles ese día.</p></div></div>
+        <div class="flow-step"><span class="flow-num"></span><div class="flow-body"><h4>Selecciona su asiento</h4><p>Ve el mapa de la unidad y aparta el lugar que quiere.</p></div></div>
+        <div class="flow-step"><span class="flow-num"></span><div class="flow-body"><h4>Paga en línea</h4><p>Confirma su compra y el asiento queda bloqueado para él.</p></div></div>
+        <div class="flow-step"><span class="flow-num"></span><div class="flow-body"><h4>Aborda con su boleto</h4><p>El chofer valida el boleto digital al subir, sin papeleo.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="cta-band">
+        <div>
+          <h2>¿Operas una línea de transporte de pasajeros?</h2>
+          <p>Te mostramos cómo se vería GRB funcionando con tus propias rutas y horarios.</p>
+        </div>
+        <a class="btn-white" href="https://wa.me/52" target="_blank" rel="noopener">Solicitar demo</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>GRB es un producto de <a href="index.html" target="_blank" rel="noopener">K'an Balam</a></p>
+</footer>
+
+</body>
+</html>
